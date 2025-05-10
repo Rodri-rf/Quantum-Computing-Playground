@@ -87,20 +87,20 @@ This dual representation allows for both a verbose, educational form (useful for
 ### Outputs  
 
 1. **Explicit Tensor Product Form – `hamiltonian_explicit(H: SparsePauliOp)`**  
-   - Each term is expressed in full tensor product notation, using \( \otimes \) to indicate each component explicitly.  
+   - Each term is expressed in full tensor product notation, using $ \otimes $ to indicate each component explicitly.  
    - Example Output:  
 
-   \[
+   $$
    H = -1.0 \cdot Z \otimes Z + -0.5 \cdot X \otimes I + -0.5 \cdot I \otimes X
-   \]
+   $$
 
 2. **Simplified Algebraic Form – `hamiltonian_simplified(H: SparsePauliOp)`**  
-   - The Hamiltonian is reduced to a compact form using **SymPy**, where products and powers are combined, e.g., \( Z^2 \) instead of \( Z \otimes Z \).  
+   - The Hamiltonian is reduced to a compact form using **SymPy**, where products and powers are combined, e.g., \( Z^2 \) instead of $ Z \otimes Z $.  
    - Example Output:  
 
-   \[
+   $$
    H = -1.0 Z^2 - 0.5 X - 0.5 X
-   \]
+   $$
 
 ---
 
