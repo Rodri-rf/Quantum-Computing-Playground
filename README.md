@@ -60,15 +60,18 @@ Then, open the Jupyter notebooks and let your imagination run wild. Each noteboo
 <script type="text/javascript" id="MathJax-script" async
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-- **Hamiltonian and LCU rendering functions**: 
 > "The matrix is an illusion, a dream. The Hamiltonian, the architect." – Unattributed Quantum Enthusiast  
+
+---
+
+- **Hamiltonian and LCU rendering functions**: 
 
 ### Purpose and Functionality  
 
 The Hamiltonian rendering functions in this section are designed to provide dual representations of quantum Hamiltonians:  
 
 1. **Explicit Tensor Product Representation:** Display Hamiltonians as explicit sums of tensor products of Pauli operators, making each term fully visible in the conventional quantum mechanics notation.  
-2. **Simplified Algebraic Form:** Render the Hamiltonian as a concise, operator-centric expression, where terms like \( Z \otimes Z \) are simplified to \( Z^2 \), leveraging the symbolic power of **SymPy**.
+2. **Simplified Algebraic Form:** Render the Hamiltonian as a concise, operator-centric expression, where terms like $ Z \otimes Z$ are simplified to $ Z^2 $, leveraging the symbolic power of **SymPy**.
 
 This dual representation allows for both a verbose, educational form (useful for dissecting Hamiltonian structure) and a more compact, algebraic form (useful for symbolic computation and further analysis).  
 
@@ -96,7 +99,7 @@ This dual representation allows for both a verbose, educational form (useful for
    $$ H = -1.0 \cdot Z \otimes Z + -0.5 \cdot X \otimes I + -0.5 \cdot I \otimes X $$
 
 2. **Simplified Algebraic Form – `hamiltonian_simplified(H: SparsePauliOp)`**  
-   - The Hamiltonian is reduced to a compact form using **SymPy**, where products and powers are combined, e.g., \( Z^2 \) instead of $ Z \otimes Z $.  
+   - The Hamiltonian is reduced to a compact form using **SymPy**, where products and powers are combined, e.g., $Z^2$ instead of $Z \otimes Z$.  
    - Example Output:  
 
    $$ H = -1.0 Z^2 - 0.5 X - 0.5 X $$
