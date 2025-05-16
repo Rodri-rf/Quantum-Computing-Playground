@@ -194,7 +194,7 @@ def calculate_ground_state_and_energy(H: SparsePauliOp) -> List[complex]:
     return ground_state, ground_energy
 
 
-def prepare_ground_state_circuit(ground_state: np.ndarray) -> QuantumCircuit:
+def prepare_eigenstate_state_circuit(ground_state: np.ndarray) -> QuantumCircuit:
     """
     Prepare a quantum circuit that initializes the ground state.
     
