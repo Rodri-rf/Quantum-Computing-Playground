@@ -152,25 +152,33 @@ def plot_complex_unit_circle(estimated_phase, expected_phase, num_ancilla, time,
     est_point = np.exp(1j * est_angle)
     exp_point = np.exp(1j * exp_angle)
 
-    # Plot unit circle
+    # Plot unit circle with shading
     plt.figure(figsize=(8, 8))
+    plt.fill_between(np.real(unit_circle), np.imag(unit_circle), where=(np.imag(unit_circle) >= 0), color='red', alpha=0.1)
+    plt.fill_between(np.real(unit_circle), np.imag(unit_circle), where=(np.imag(unit_circle) < 0), color='blue', alpha=0.1)
+
+    # Plot unit circle boundary
     plt.plot(np.real(unit_circle), np.imag(unit_circle), label="Unit Circle", color='gray', linestyle='--')
     plt.axhline(0, color='black', linewidth=0.5)
     plt.axvline(0, color='black', linewidth=0.5)
 
     # Plot expected phase
-    plt.plot([0, np.real(exp_point)], [0, np.imag(exp_point)], 'b-', label=f"Expected Phase ({expected_phase:.3f})")
-    plt.plot(np.real(exp_point), np.imag(exp_point), 'bo', label=f"Expected Point")
+    plt.plot([0, np.real(exp_point)], [0, np.imag(exp_point)], 'darkblue', label=f"Expected Phase ({expected_phase:.3f})", linewidth=1.5)
+    plt.plot(np.real(exp_point), np.imag(exp_point), 'bo', label="Expected Point")
 
     # Plot estimated phase
-    plt.plot([0, np.real(est_point)], [0, np.imag(est_point)], 'r-', label=f"Estimated Phase ({estimated_phase:.3f})")
-    plt.plot(np.real(est_point), np.imag(est_point), 'ro', label=f"Estimated Point")
+    plt.plot([0, np.real(est_point)], [0, np.imag(est_point)], 'darkred', label=f"Estimated Phase ({estimated_phase:.3f})", linewidth=1.5)
+    plt.plot(np.real(est_point), np.imag(est_point), 'ro', label="Estimated Point")
 
     # Annotate angles in radians
     plt.text(1.1, 0, "0 / 2π", fontsize=10, ha='center')
     plt.text(-1.1, 0, "π", fontsize=10, ha='center')
     plt.text(0, 1.1, "π/2", fontsize=10, va='center')
     plt.text(0, -1.1, "3π/2", fontsize=10, va='center')
+
+    # Add legend for shading
+    plt.plot([], [], color='red', alpha=0.1, label="Positive Eigenvalue Zone")
+    plt.plot([], [], color='blue', alpha=0.1, label="Negative Eigenvalue Zone")
 
     # Set plot limits and title
     plt.xlim(-1.2, 1.2)
