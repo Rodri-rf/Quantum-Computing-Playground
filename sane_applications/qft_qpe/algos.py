@@ -29,7 +29,7 @@ Hamiltonian = list[tuple[coefficient, Pauli]]
 
 # ---------------------------------------------------- utils ----------------------------------------------------
 
-def generate_ising_hamiltonian(num_qubits: int, J, g) -> Union[SparsePauliOp, Pauli]:
+def generate_ising_hamiltonian(num_qubits: int, J, g) -> SparsePauliOp:
     z_terms = []
     z_coeffs = []
     

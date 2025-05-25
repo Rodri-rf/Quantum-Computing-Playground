@@ -54,9 +54,9 @@ J = 1.2
 G = 1.0
 
 # Parameter sweep for time
-TIME_VALUES = [0.0001 * i for i in range(1, 10000, 100)] + [1 + 0.2 * i for i in range(1, 50)]
+TIME_VALUES = [0.00001 * i for i in range(1, 100000, 500)] # Time values for the simulation
 SHOTS_VALUES = [10000]
-ANCILLA_VALUES = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]  # Number of ancilla qubits
+ANCILLA_VALUES = [10, 15]  # Number of ancilla qubits
 
 @pytest.mark.parametrize("time", TIME_VALUES)
 @pytest.mark.parametrize("shots", SHOTS_VALUES)
@@ -125,7 +125,7 @@ def test_qpe_ising_hamiltonian_general_case_positive(time, shots, num_ancilla):
     assert most_probable.startswith(expected_bitstring), f"Expected prefix {expected_bitstring}, got {most_probable}"
 
 
-CSV_FILE = "qdrift_ising_model_sweep_data.csv"  # New CSV file for QDRIFT tests
+CSV_FILE_QDRIFT = "qdrift_ising_model_sweep_data.csv"  # New CSV file for QDRIFT tests
 
 def test_qdrift_qpe_ising_hamiltonian_general_case(time, shots, num_ancilla):
     """Test QPE with Ising Hamiltonian (General Case) and log Hamiltonian representations."""
@@ -134,6 +134,7 @@ def test_qdrift_qpe_ising_hamiltonian_general_case(time, shots, num_ancilla):
     H = generate_ising_hamiltonian(NUM_QUBITS, J, G)
     matrix = H.to_matrix()
     eigenvalues, eigenvectors = np.linalg.eig(matrix)
+    alpha = sum(abs(H.coeffs))
 
     first_positive_eigenvalue = min(eigenvalues[eigenvalues > 0])
     eigenvector_index = np.where(eigenvalues == first_positive_eigenvalue)[0][0]
@@ -168,17 +169,17 @@ def test_qdrift_qpe_ising_hamiltonian_general_case(time, shots, num_ancilla):
         "Num Qubits", "Time", "Shots", "Num Ancilla",
         "Exact Eigenvalue", "Expected Phase",
         "Most Probable Bitstring", "Estimated Phase",
-        "Estimated Eigenvalue", "Eigenvalue Error"
+        "Estimated Eigenvalue", "Eigenvalue Error", "Alpha"
     ]
     row = [
         NUM_QUBITS, time, shots, num_ancilla,
         first_positive_eigenvalue, expected_phase,
         most_probable, estimated_phase,
-        estimated_energy, eigenvalue_error
+        estimated_energy, eigenvalue_error, alpha
     ]
 
-    file_exists = os.path.isfile(CSV_FILE)
-    with open(CSV_FILE, mode='a', newline='') as file:
+    file_exists = os.path.isfile(CSV_FILE_QDRIFT)
+    with open(CSV_FILE_QDRIFT, mode='a', newline='') as file:
         writer = csv.writer(file)
         if not file_exists:
             writer.writerow(header)
