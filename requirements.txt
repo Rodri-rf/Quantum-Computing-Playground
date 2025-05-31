@@ -6,7 +6,6 @@ pandas==2.2.3
 playwright==1.52.0
 plotly==6.0.0
 pytest==8.3.5
-pytket_qiskit==0.63.0
 qiskit==2.0.0
 qiskit_aer==0.17.0
 qiskit_algorithms==0.3.1
