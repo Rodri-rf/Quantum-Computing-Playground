@@ -18,20 +18,6 @@ import psutil
 import time
 import os
 
-def wait_if_memory_high(threshold_percent: float = 85.0, check_every_sec: int = 2, max_wait_sec: int = 120):
-    """
-    Pauses the current worker if memory usage exceeds threshold.
-    Useful when running parallel tests (e.g., via pytest-xdist).
-    """
-    waited = 0
-    while psutil.virtual_memory().percent >= threshold_percent:
-        print(f"[Worker PID {os.getpid()}] High RAM usage ({psutil.virtual_memory().percent}%). Pausing...")
-        time.sleep(check_every_sec)
-        waited += check_every_sec
-        if waited > max_wait_sec:
-            print(f"[Worker PID {os.getpid()}] Waited {waited}s. Continuing anyway.")
-            break
-
 
 def deterministic_wrapper(
     H: SparsePauliOp,
@@ -78,30 +64,31 @@ G = 1.0
 CSV_FILE_QDRIFT_EXTRA_RANDOM = f"qdrift_ising_model_sweep_data_extra_random_{datetime.datetime.today()}.csv"  # New CSV file for QDRIFT tests
 CSV_FILE_QDRIFT_QPE_ALL = f"qdrift_ising_model_sweep_data_all_{datetime.datetime.today().strftime('%Y-%m-%d')}.csv"  # New CSV file for QDRIFT tests
 
-QDRIFT_IMPLEMENTATIONS = [(qdrift_qpe, "exponential invocations of qdrift channel"), (qdrift_qpe_chat_gpts_take, "linear invocations of qdrift channel")]
+QDRIFT_IMPLEMENTATIONS = [(qdrift_qpe, "exponential invocations of qdrift channel")]
 rand_pauli = generate_random_hamiltonian_with_pauli_tensor_structure(NUM_QUBITS, num_terms=9)
 matrix = rand_pauli.to_matrix()
 eigenvalues, eigenvectors = np.linalg.eig(matrix)
 assert np.all(np.isreal(eigenvalues)), "Eigenvalues are not all real!"
 
-# HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G)), ("Random Pauli", rand_pauli), ("Simple Z",     SparsePauliOp(["Z"*NUM_QUBITS], coeffs=[1.0]))]
-HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G))]
-RANDOMNESS = [(1, 1024),  (64, 16), (1024, 16), (2048, 16)]  # (num_random_circuits, num_shots_per_circuit)
-ANCILLA_VALUES = [4, 6, 8, 10, 12]  # Number of ancilla qubits
-TIME_VALUES = TIME_VALUES = list(np.logspace(-3, -1, num=100)) 
+HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G)), ("Random Pauli", rand_pauli), ("Simple Z",     SparsePauliOp(["Z"*NUM_QUBITS], coeffs=[1.0]))]
+RANDOMNESS = [(1, 512)]  # (num_random_circuits, num_shots_per_circuit)
+ANCILLA_VALUES = [8, 10, 12, 13]  # Number of ancilla qubits
+TIME_VALUES = list(np.logspace(-3, 0, num=200))
 
 @pytest.mark.parametrize("qdrift_impl", QDRIFT_IMPLEMENTATIONS)
 @pytest.mark.parametrize("calculate_ground_state", [False])
 @pytest.mark.parametrize("H", HAMILTONIANS)
-@pytest.mark.parametrize("num_random_circuits, num_shots_per_circuit", RANDOMNESS)
-@pytest.mark.parametrize("num_ancilla", ANCILLA_VALUES)
+@pytest.mark.parametrize("num_random_circuits_and_num_shots_per_circuit", RANDOMNESS,
+                         ids=lambda p: f"{p[0]}circ_{p[1]}shots")
+@pytest.mark.parametrize("num_ancilla", ANCILLA_VALUES, ids=lambda v: f"qubit{v}")
 @pytest.mark.parametrize("total_simulation_time", TIME_VALUES)
 
 
-def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl: Tuple[Callable, str], num_random_circuits, num_shots_per_circuit, calculate_ground_state: bool, H: SparsePauliOp):
+def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl: Tuple[Callable, str], num_random_circuits_and_num_shots_per_circuit, calculate_ground_state: bool, H: SparsePauliOp):
     """Test QPE with Ising Hamiltonian (General Case) and log Hamiltonian representations."""
     # Generate Ising Hamiltonian
     type_of_hamiltonian, H = H
+    num_random_circuits, num_shots_per_circuit = num_random_circuits_and_num_shots_per_circuit
     matrix = H.to_matrix()
     eigenvalues, eigenvectors = np.linalg.eig(matrix)
     alpha = sum(abs(H.coeffs))
@@ -125,8 +112,6 @@ def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl
     expected_phase = (first_positive_eigenvalue.real * total_simulation_time) / (2 * np.pi) % 1
     expected_bitstring = bin(round(expected_phase * (2 ** num_ancilla)))[2:].zfill(num_ancilla)
 
-    # build the actual quantum circuits
-    wait_if_memory_high(threshold_percent=95.0, check_every_sec=2, max_wait_sec=120)
     generate_qdrift_circuit, impl_name = qdrift_impl
     results = []
     simulator = AerSimulator()
