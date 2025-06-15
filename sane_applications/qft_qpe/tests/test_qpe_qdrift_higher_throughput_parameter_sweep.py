@@ -57,12 +57,12 @@ def process_qpe_results(time, num_ancilla, counts):
 
 # Parameters for the Ising model
 NUM_QUBITS = 2
-J = 1.2
-G = 1.0
+J = 1.0
+G = 0.8
 
 #Log file for QDRIFT tests
 CSV_FILE_QDRIFT_EXTRA_RANDOM = f"qdrift_ising_model_sweep_data_extra_random_{datetime.datetime.today()}.csv"  # New CSV file for QDRIFT tests
-CSV_FILE_QDRIFT_QPE_ALL = f"qdrift_ising_model_sweep_data_all_{datetime.datetime.today().strftime('%Y-%m-%d')}.csv"  # New CSV file for QDRIFT tests
+CSV_FILE_QDRIFT_QPE_ALL = f"qdrift_ising_model_sweep_ultimate_{datetime.datetime.today().strftime('%Y-%m-%d')}.csv"  # New CSV file for QDRIFT tests
 
 QDRIFT_IMPLEMENTATIONS = [(qdrift_qpe, "exponential invocations of qdrift channel")]
 rand_pauli = generate_random_hamiltonian_with_pauli_tensor_structure(NUM_QUBITS, num_terms=9)
@@ -70,10 +70,11 @@ matrix = rand_pauli.to_matrix()
 eigenvalues, eigenvectors = np.linalg.eig(matrix)
 assert np.all(np.isreal(eigenvalues)), "Eigenvalues are not all real!"
 
-HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G)), ("Random Pauli", rand_pauli), ("Simple Z",     SparsePauliOp(["Z"*NUM_QUBITS], coeffs=[1.0]))]
-RANDOMNESS = [(1, 512)]  # (num_random_circuits, num_shots_per_circuit)
-ANCILLA_VALUES = [8, 10, 12, 13]  # Number of ancilla qubits
-TIME_VALUES = list(np.logspace(-3, 0, num=200))
+# HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G)), ("Simple Z",     SparsePauliOp(["Z"*NUM_QUBITS], coeffs=[1.0]))]
+HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G))]
+RANDOMNESS = [(1, 1024)]  # (num_random_circuits, num_shots_per_circuit)
+ANCILLA_VALUES = [13]  # Number of ancilla qubits
+TIME_VALUES = list(np.logspace(-3, 1.5, num=100))
 
 @pytest.mark.parametrize("qdrift_impl", QDRIFT_IMPLEMENTATIONS)
 @pytest.mark.parametrize("calculate_ground_state", [False])
