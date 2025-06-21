@@ -18,32 +18,6 @@ import psutil
 import time
 import os
 
-
-def deterministic_wrapper(
-    H: SparsePauliOp,
-    *,
-    eigenstate: QuantumCircuit,
-    time: float,
-    num_qubits: int,
-    num_ancilla: int
-) -> QuantumCircuit:
-    """
-    Adapter to call deterministic_qpe_qdrift_with_error_budget with
-    an error budget epsilon_total = 1 / (2^m).  That way, the diamond-norm
-    error is roughly O(1/2^m), matching QPE's resolution 1/2^m.
-    """
-    m = num_ancilla
-    # Set ε_tot = 1 / 2^m  (you can tune this if you wish)
-    epsilon_total = 1.0 / (2**m)
-    # deterministic_qpe_qdrift_with_error_budget takes (H, ε_tot, m, eigenstate, num_qubits)
-    return deterministic_qpe_qdrift_with_error_budget(
-        hamiltonian=H,
-        epsilon_total=epsilon_total,
-        m=m,
-        eigenstate=eigenstate,
-        num_qubits=num_qubits
-    )
-
 def process_qpe_results(time, num_ancilla, counts):
     most_probable = max(counts, key=counts.get)
     estimated_decimal = int(most_probable, 2) / (2 ** num_ancilla)
@@ -57,12 +31,12 @@ def process_qpe_results(time, num_ancilla, counts):
 
 # Parameters for the Ising model
 NUM_QUBITS = 2
-J = 1.0
+J = 1
 G = 0.8
 
 #Log file for QDRIFT tests
 CSV_FILE_QDRIFT_EXTRA_RANDOM = f"qdrift_ising_model_sweep_data_extra_random_{datetime.datetime.today()}.csv"  # New CSV file for QDRIFT tests
-CSV_FILE_QDRIFT_QPE_ALL = f"qdrift_ising_model_sweep_ultimate_{datetime.datetime.today().strftime('%Y-%m-%d')}.csv"  # New CSV file for QDRIFT tests
+CSV_FILE_QDRIFT_QPE_ALL = f"qdrift_ising_model_sweep_ultimate_2025-06-19.csv"  # New CSV file for QDRIFT tests
 
 QDRIFT_IMPLEMENTATIONS = [(qdrift_qpe, "exponential invocations of qdrift channel")]
 rand_pauli = generate_random_hamiltonian_with_pauli_tensor_structure(NUM_QUBITS, num_terms=9)
@@ -73,8 +47,9 @@ assert np.all(np.isreal(eigenvalues)), "Eigenvalues are not all real!"
 # HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G)), ("Simple Z",     SparsePauliOp(["Z"*NUM_QUBITS], coeffs=[1.0]))]
 HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G))]
 RANDOMNESS = [(1, 1024)]  # (num_random_circuits, num_shots_per_circuit)
-ANCILLA_VALUES = [13]  # Number of ancilla qubits
-TIME_VALUES = list(np.logspace(-3, 1.5, num=100))
+ANCILLA_VALUES = [8, 10]  # Number of ancilla qubits
+TIME_VALUES = list(np.logspace(-3, 1, num=100))
+NUM_QDRIFT_SAMPLES_PER_CHANNEL_INVOCATION = [100]
 
 @pytest.mark.parametrize("qdrift_impl", QDRIFT_IMPLEMENTATIONS)
 @pytest.mark.parametrize("calculate_ground_state", [False])
@@ -83,9 +58,10 @@ TIME_VALUES = list(np.logspace(-3, 1.5, num=100))
                          ids=lambda p: f"{p[0]}circ_{p[1]}shots")
 @pytest.mark.parametrize("num_ancilla", ANCILLA_VALUES, ids=lambda v: f"qubit{v}")
 @pytest.mark.parametrize("total_simulation_time", TIME_VALUES)
+@pytest.mark.parametrize("N", NUM_QDRIFT_SAMPLES_PER_CHANNEL_INVOCATION)
 
 
-def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl: Tuple[Callable, str], num_random_circuits_and_num_shots_per_circuit, calculate_ground_state: bool, H: SparsePauliOp):
+def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl: Tuple[Callable, str], num_random_circuits_and_num_shots_per_circuit, calculate_ground_state: bool, H: SparsePauliOp, N):
     """Test QPE with Ising Hamiltonian (General Case) and log Hamiltonian representations."""
     # Generate Ising Hamiltonian
     type_of_hamiltonian, H = H
@@ -117,7 +93,7 @@ def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl
     results = []
     simulator = AerSimulator()
     for rand_circuit in range(num_random_circuits):
-        qc = generate_qdrift_circuit(H, eigenstate=eigenstate_circuit, time=total_simulation_time, num_qubits=NUM_QUBITS, num_ancilla=num_ancilla)
+        qc = generate_qdrift_circuit(H, eigenstate=eigenstate_circuit, time=total_simulation_time, num_qubits=NUM_QUBITS, num_ancilla=num_ancilla, num_samples_per_channel_invocation=N)
         # Simulate the circuit
         compiled_circuit = transpile(qc, simulator)
         result = simulator.run(compiled_circuit, shots=num_shots_per_circuit).result()
@@ -144,7 +120,7 @@ def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl
         "Exact Eigenvalue", "Expected Phase",
         "Most Probable Bitstring", "Estimated Phase",
         "Estimated Eigenvalue", "Eigenvalue Error", "Alpha", "QDRIFT Implementation", 
-        "type of Hamiltonian", "Num Random Circuits", "Num Shots per Circuit", "Circuit Depth",
+        "type of Hamiltonian", "Num Random Circuits", "Num Shots per Circuit", "Circuit Depth", "qDRIFT samples per invocation of qDRIFT channel"
         "Raw results" 
     ]
     row = [
@@ -152,7 +128,7 @@ def test_qdrift_qpe_general_case(total_simulation_time, num_ancilla, qdrift_impl
         first_positive_eigenvalue, expected_phase,
         most_probable, estimated_phase,
         estimated_energy, eigenvalue_error, alpha, impl_name, type_of_hamiltonian,
-        num_random_circuits, num_shots_per_circuit, qc.depth() if isinstance(qc, QuantumCircuit) else "N/A",
+        num_random_circuits, num_shots_per_circuit, qc.depth() if isinstance(qc, QuantumCircuit) else "N/A", N,
         str(counts)  # Store raw results as a string
     ]
 

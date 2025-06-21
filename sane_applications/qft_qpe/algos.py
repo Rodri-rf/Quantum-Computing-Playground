@@ -226,7 +226,7 @@ def qdrift_sample_naive(hamiltonian: SparsePauliOp, time: float, num_samples: in
     return sampled_unitaries, labels
 
 # Function to perform qDRIFT-based QPE
-def qdrift_qpe(hamiltonian: SparsePauliOp, time: float, eigenstate, num_qubits: int, num_ancilla: int):
+def qdrift_qpe(hamiltonian: SparsePauliOp, time: float, eigenstate, num_qubits: int, num_ancilla: int, num_samples_per_channel_invocation=1):
     qc = QuantumCircuit(num_ancilla + num_qubits, num_ancilla)
 
     # Initialize the eigenstate
@@ -245,7 +245,7 @@ def qdrift_qpe(hamiltonian: SparsePauliOp, time: float, eigenstate, num_qubits: 
     for k in tqdm(range(num_ancilla), desc=f"Ancilla layer (k={k})"):
         for _ in range(2 ** k):
             # Sample unitaries using the new qdrift_sample function
-            sampled_unitaries, labels = qdrift_sample_naive(hamiltonian, time, num_samples=1)
+            sampled_unitaries, labels = qdrift_sample_naive(hamiltonian, time, num_samples=num_samples_per_channel_invocation)
             for unitary, label in zip(sampled_unitaries, labels):
                 controlled_unitary = UnitaryGate(unitary, label=label).control(1)
                 qc.append(controlled_unitary, [k] + list(range(num_ancilla, num_ancilla + num_qubits)))
@@ -259,7 +259,7 @@ def qdrift_qpe(hamiltonian: SparsePauliOp, time: float, eigenstate, num_qubits: 
     return qc
 
 
-def qdrift_qpe_chat_gpts_take(hamiltonian: SparsePauliOp, time: float, eigenstate, num_qubits: int, num_ancilla: int):
+def qdrift_qpe_chat_gpts_take(hamiltonian: SparsePauliOp, time: float, eigenstate, num_qubits: int, num_ancilla: int, num_samples_per_channel_invocation=1):
     qc = QuantumCircuit(num_ancilla + num_qubits, num_ancilla)
 
     # Initialize the eigenstate

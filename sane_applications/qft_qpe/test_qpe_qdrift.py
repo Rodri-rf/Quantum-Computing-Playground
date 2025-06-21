@@ -4,7 +4,7 @@ from qiskit import transpile, QuantumCircuit
 from qiskit.visualization import plot_histogram
 import pytest
 import math
-from random_cool_trinkets.utils import hamiltonian_explicit, hamiltonian_simplified, format_hamiltonian_matrix_as_latex, plot_complex_unit_circle
+from random_cool_trinkets.utils_visualization import hamiltonian_explicit, hamiltonian_simplified, format_hamiltonian_matrix_as_latex, plot_complex_unit_circle
 import uuid
 import numpy as np
 
