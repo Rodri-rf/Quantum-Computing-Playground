@@ -36,7 +36,7 @@ G = 0.8
 
 #Log file for QDRIFT tests
 CSV_FILE_QDRIFT_EXTRA_RANDOM = f"qdrift_ising_model_sweep_data_extra_random_{datetime.datetime.today()}.csv"  # New CSV file for QDRIFT tests
-CSV_FILE_QDRIFT_QPE_ALL = f"qdrift_ising_model_sweep_ultimate_2025-06-19.csv"  # New CSV file for QDRIFT tests
+CSV_FILE_QDRIFT_QPE_ALL = f"qdrift_ising_model_sweep_ultimate_2025-06-24.csv"  # New CSV file for QDRIFT tests
 
 QDRIFT_IMPLEMENTATIONS = [(qdrift_qpe, "exponential invocations of qdrift channel")]
 rand_pauli = generate_random_hamiltonian_with_pauli_tensor_structure(NUM_QUBITS, num_terms=9)
@@ -46,10 +46,10 @@ assert np.all(np.isreal(eigenvalues)), "Eigenvalues are not all real!"
 
 # HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G)), ("Simple Z",     SparsePauliOp(["Z"*NUM_QUBITS], coeffs=[1.0]))]
 HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G))]
-RANDOMNESS = [(1, 1024)]  # (num_random_circuits, num_shots_per_circuit)
-ANCILLA_VALUES = [8, 10]  # Number of ancilla qubits
-TIME_VALUES = list(np.logspace(-3, 1, num=100))
-NUM_QDRIFT_SAMPLES_PER_CHANNEL_INVOCATION = [100]
+RANDOMNESS = [(1000, 1)]  # (num_random_circuits, num_shots_per_circuit)
+ANCILLA_VALUES = [8, 10, 12]  # Number of ancilla qubits
+TIME_VALUES = list(np.logspace(-4, 1, num=100))
+NUM_QDRIFT_SAMPLES_PER_CHANNEL_INVOCATION = [1, 10, 100]
 
 @pytest.mark.parametrize("qdrift_impl", QDRIFT_IMPLEMENTATIONS)
 @pytest.mark.parametrize("calculate_ground_state", [False])
