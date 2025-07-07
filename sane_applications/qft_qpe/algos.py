@@ -17,6 +17,7 @@ from IPython.display import display, Math
 from qiskit.quantum_info import Pauli, SparsePauliOp, Operator
 from qiskit.circuit.library import Initialize
 from line_profiler import profile
+from qiskit.circuit.library import PauliEvolutionGate
 
 # import basic plot tools
 from qiskit.visualization import plot_histogram
@@ -60,11 +61,16 @@ def generate_ising_hamiltonian(num_qubits: int, J, g) -> SparsePauliOp:
     return SparsePauliOp(all_terms, coeffs=all_coeffs)
 
 
-def exponentiate_hamiltonian(hamiltonian: SparsePauliOp, time: float) -> Operator:
-    """Exponentiates the Hamiltonian to obtain U = e^(-i H t)."""
-    matrix = hamiltonian.to_matrix()
-    unitary_matrix = scipy.linalg.expm(1j * time * matrix)
-    return Operator(unitary_matrix)
+def exponentiate_hamiltonian(
+        hamiltonian: SparsePauliOp,
+        time: float
+) -> PauliEvolutionGate:
+    """
+    Return a symbolic e^{-i H t} without building the dense matrix.
+    For single-Pauli operators this is exact; for multi-Pauli use
+    Qiskit’s built-in synthesis (works well up to ~20 qubits).
+    """
+    return PauliEvolutionGate(hamiltonian, time)
 
 
 def calculate_ground_state_and_energy(H: SparsePauliOp) -> List[complex]:
@@ -349,6 +355,7 @@ def qdrift_qpe_extra_random(hamiltonian: SparsePauliOp,
 
     return qc
 
+# -------------------------------------------------------------------------- qDRIFT-QPE with fixed N_j -----------------------------
 
 def compute_qdrift_Nj_list(
     hamiltonian: SparsePauliOp,

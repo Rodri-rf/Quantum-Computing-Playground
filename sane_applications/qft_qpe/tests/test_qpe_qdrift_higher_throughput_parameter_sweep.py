@@ -8,7 +8,7 @@ from qiskit import transpile, QuantumCircuit
 from qiskit.visualization import plot_histogram
 import pytest
 import pandas as pd
-import csv
+import cs
 from line_profiler import profile
 from typing import Callable, Tuple
 import inspect
@@ -47,9 +47,9 @@ assert np.all(np.isreal(eigenvalues)), "Eigenvalues are not all real!"
 # HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G)), ("Simple Z",     SparsePauliOp(["Z"*NUM_QUBITS], coeffs=[1.0]))]
 HAMILTONIANS = [("Ising", generate_ising_hamiltonian(NUM_QUBITS, J, G))]
 RANDOMNESS = [(1000, 1)]  # (num_random_circuits, num_shots_per_circuit)
-ANCILLA_VALUES = [8, 10, 12]  # Number of ancilla qubits
+ANCILLA_VALUES = [8, 10, 12, 14, 16]  # Number of ancilla qubits
 TIME_VALUES = list(np.logspace(-4, 1, num=100))
-NUM_QDRIFT_SAMPLES_PER_CHANNEL_INVOCATION = [1, 10, 100]
+NUM_QDRIFT_SAMPLES_PER_CHANNEL_INVOCATION = [1, 10, 20]
 
 @pytest.mark.parametrize("qdrift_impl", QDRIFT_IMPLEMENTATIONS)
 @pytest.mark.parametrize("calculate_ground_state", [False])
